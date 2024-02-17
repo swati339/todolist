@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Registration</title>
+</head>
+<style>
+    .edit a{
+        text-decoration: none;
+    }
+    .body{
+        background-color: rgb(187, 237, 237);
+    }
+</style>
+<body>
+    <h1 style="margin-left: 500px;">Register</h1>
+    <form action="{{ url_for('register') }}" method="post" >
+        <div>
+            {{ form.username.label }}<br>
+            {{ form.username(class="form-control") }}<br><br>
+            {% for error in form.username.errors %}
+                <span style="color: red;">{{ error }}</span><br><br>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.password.label }}<br>
+            {{ form.password(class="form-control") }}<br><br>
+            {% for error in form.password.errors %}
+                <span style="color: red;">{{ error }}</span><br><br>
+            {% endfor %}
+        </div>
+        <div>
+            {{ form.confirm_password.label }}<br>
+            {{ form.confirm_password(class="form-control") }}<br><br>
+            {% for error in form.confirm_password.errors %}
+                <span style="color: red;">{{ error }}</span><br><br><br>
+            {% endfor %}
+        </div>
+        <button type="submit" style="background-color: aqua;">Register</button>
+    </form>
+    <div class="edit">
+    <p>Already have an account? <a href="{{ url_for('index') }}">Login here</a>.</p>
+</div>
+</body>
+</html>
