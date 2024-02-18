@@ -10,58 +10,80 @@
             background-color: #eee;
         }
 
-        .conatiner{
-            color:black;
-            padding: 10px 5px 10px;
-
+        .container {
+            color: black;
+            padding: 10px 5px;
         }
 
-        .container a{
-            text-decoration:none;
+        .container a {
+            text-decoration: none;
+        }
 
+        .content {
+            margin-top: 20px;
+        }
+
+        input[type="text"],
+        input[type="submit"],
+        input[type="radio"] {
+            padding: 8px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            font-size: 16px;
+        }
+
+        input[type="submit"] {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        input[type="submit"]:hover {
+            background-color: #45a049;
         }
     </style>
 </head>
 <body>
     <h1>ToDo List</h1>
     <div class="container">
-    <p><a href="{{ url_for('register') }}">Register</a></p>
-</div>
+        <p><a href="{{ url_for('register') }}">Register</a></p>
+        <!-- <p><a href="{{ url_for('login') }}">Login</a></p> -->
+    </div>
     <hr>
     <div class="content">
-    <form method="post" id="todoForm">
-        <p>
-            <b><label for="content">Todo content</label></b>
-        </p>
-        <p>
-            <input type="text" name="content" id="todoContent"
-                placeholder="Todo Content"></input>
-        </p>
+        <form method="post" id="todoForm">
+            <p>
+                <b><label for="content">Todo content</label></b>
+            </p>
+            <p>
+                <input type="text" name="content" id="todoContent"
+                    placeholder="Todo Content"></input>
+            </p>
 
-        <p>
-            <b><label for="degree">Degree</label></b>
-        </p>
-        <p>
-            <input id="degree-0" name="degree" required type="radio" value="Important">
-            <label for="degree-0">Important</label>
-        </p>
-        <p>
-            <input id="degree-1" name="degree" required type="radio" value="Unimportant">
-            <label for="degree-1">Unimportant</label>
-        </p>
-        <button type="submit">Submit</button>
-    </form>
-    <hr>
-    {% for todo in todos %}
-        <div class="todo">
-            <p>{{ todo['content'] }} <i>({{ todo['degree']}})</i></p>
-            <form method="POST" action="{{ url_for('delete', id=todo['_id']) }}" >
-                <input type="submit" value="Delete Todo"
-                       onclick="return confirm('Are you sure you want to delete this entry?')">
-            </form>
-        </div>
-    {% endfor %}
-
+            <p>
+                <b><label for="degree">Degree</label></b>
+            </p>
+            <p>
+                <input id="degree-0" name="degree" required type="radio" value="Important">
+                <label for="degree-0">Important</label>
+            </p>
+            <p>
+                <input id="degree-1" name="degree" required type="radio" value="Unimportant">
+                <label for="degree-1">Unimportant</label>
+            </p>
+            <button type="submit">Submit</button>
+        </form>
+        <hr>
+        {% for todo in todos %}
+            <div class="todo">
+                <p>{{ todo['content'] }} <i>({{ todo['degree']}})</i></p>
+                <form method="POST" action="{{ url_for('delete', id=todo['_id']) }}" >
+                    <input type="submit" value="Delete Todo"
+                           onclick="return confirm('Are you sure you want to delete this entry?')">
+                </form>
+            </div>
+        {% endfor %}
     </div>
     <script>
         document.getElementById('todoForm').addEventListener('submit', async function(event) {

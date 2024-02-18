@@ -1,13 +1,12 @@
-from flask import Flask, render_template, request, redirect, url_for, flash
-from pymongo import MongoClient
-from bson.objectid import ObjectId
+from flask import Flask, render_template, redirect, url_for, flash
+from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SubmitField
-from wtforms.validators import DataRequired, Length, EqualTo
+from wtforms.validators import DataRequired, Length
+from pymongo import MongoClient
+from bson.objectid import ObjectId
 from flask_bcrypt import Bcrypt
-from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 import os
-from forms import RegistrationForm
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = os.urandom(24)
@@ -15,40 +14,40 @@ app.config['SECRET_KEY'] = os.urandom(24)
 client = MongoClient('mongodb://localhost:27017/')
 db = client.flask_db
 todos = db.todos
-users = db.users
+users_collection = db.users
 
 bcrypt = Bcrypt(app)
 login_manager = LoginManager(app)
 
+class User(UserMixin):
+    def __init__(self, user_id):
+        self.id = user_id
+
 @login_manager.user_loader
 def load_user(user_id):
-    return User.get(user_id)
-
-class User(UserMixin):
-    def __init__(self, username):
-        self.username = username
-
-    def get_id(self):
-        return self.username
+    return User(user_id)
 
 class RegistrationForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
     password = PasswordField('Password', validators=[DataRequired()])
-    confirm_password = PasswordField('Confirm Password', validators=[DataRequired(), EqualTo('password')])
-    submit = SubmitField('Sign Up')
+    confirm_password = PasswordField('Confirm Password', validators=[DataRequired()])
+    submit = SubmitField('Register')
 
 class LoginForm(FlaskForm):
     username = StringField('Username', validators=[DataRequired(), Length(min=4, max=20)])
     password = PasswordField('Password', validators=[DataRequired()])
     submit = SubmitField('Log In')
 
-@app.route('/', methods=('GET', 'POST'))
+    
+
+@app.route('/', methods=['GET', 'POST'])
 def index():
     form = LoginForm()
     if form.validate_on_submit():
-        user = users.find_one({'username': form.username.data})
+        user = users_collection.find_one({'username': form.username.data})
         if user and bcrypt.check_password_hash(user['password'], form.password.data):
-            login_user(User(user['username']))
+            login_user(User(user['_id']))
+            flash('Logged in successfully.', 'success')
             return redirect(url_for('index'))
         else:
             flash('Invalid username or password', 'error')
@@ -59,12 +58,12 @@ def index():
 def register():
     form = RegistrationForm()
     if form.validate_on_submit():
-        existing_user = users.find_one({'username': form.username.data})
+        existing_user = users_collection.find_one({'username': form.username.data})
         if existing_user:
             flash('Username already exists', 'error')
         else:
             hashed_password = bcrypt.generate_password_hash(form.password.data).decode('utf-8')
-            users.insert_one({'username': form.username.data, 'password': hashed_password})
+            users_collection.insert_one({'username': form.username.data, 'password': hashed_password})
             flash('Registration successful! Please log in.', 'success')
             return redirect(url_for('index'))
     return render_template('register.html', form=form)
@@ -81,6 +80,28 @@ def logout():
 def delete(id):
     todos.delete_one({"_id": ObjectId(id)})
     return redirect(url_for('index'))
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if form.validate_on_submit():
+        username = form.username.data
+        password = form.password.data
+
+        # Retrieve user from the database based on the provided username
+        user = users_collection.find_one({'username': username})
+
+        if user and bcrypt.check_password_hash(user['password'], password):
+            # If username and password match, log in the user
+            flash('Login successful!', 'success')
+            return redirect(url_for('index'))
+        else:
+            # If username and password do not match, display an error message
+            flash('Invalid username or password', 'error')
+
+    return render_template('login.html', form=form)
+
 
 if __name__ == '__main__':
     app.run(debug=True)
